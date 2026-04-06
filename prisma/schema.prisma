@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  status        String    @default("active")
+  roles         String[]
+  profile       Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  assignedCases Case[]
+  auditLogs     AuditLog[]
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  config      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkflowTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  version     String   @default("1.0.0")
+  config      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkflowStage {
+  id          Int      @id @default(autoincrement())
+  name        String
+  workflowKey String?
+  position    Int      @default(0)
+  config      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkflowTransition {
+  id            Int      @id @default(autoincrement())
+  name          String
+  fromStageKey  String?
+  toStageKey    String?
+  conditions    Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model FormSchema {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  schema      Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DocumentType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  required    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DocumentRule {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  conditions  Json?
+  actions     Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ApprovalChain {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  approvers   Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Case {
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String?
+  status         String    @default("draft")
+  workflowKey    String?
+  currentStage   String?
+  assignedUserId Int?
+  metadata       Json?
+  assignedUser   User?     @relation(fields: [assignedUserId], references: [id])
+  auditLogs      AuditLog[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  actorId    Int?
+  caseId     Int?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  case       Case?    @relation(fields: [caseId], references: [id])
+  createdAt  DateTime @default(now())
+}
